@@ -24,7 +24,7 @@ const wrapRequest = async (eris, resource, method, res, ...args) => {
     }
     const addOnProperties = {}
     if (Array.isArray(result)) {
-      if (result[0].guild) {
+      if (result.length && result[0].guild) {
         addOnProperties.guild_id = result[0].guild.id
       }
     } else if (result.guild) {
