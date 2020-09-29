@@ -32,7 +32,7 @@ const wrapRequest = async (eris, resource, method, res, ...args) => {
     if (Array.isArray(result)) {
       result = result.map(item => {
         return objectMap(item, (k, v) => {
-          return [k.replace('ID', 'Id').replace(/([A-Z])/g, '_$1').toLowerCase(), v]
+          return [k.replace('ID', 'Id').replace('URL', 'Url').replace(/([A-Z])/g, '_$1').toLowerCase(), v]
         })
       })
     } else if (typeof result === 'object') {
