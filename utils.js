@@ -22,6 +22,24 @@ const wrapRequest = async (eris, resource, method, res, ...args) => {
       }
       result = await result.bind(erisResource)(...functionArguments)
     }
+    result = JSON.parse(JSON.stringify(result))
+    const objectMap = (obj, fn) =>
+      Object.fromEntries(
+        Object.entries(obj).map(
+          ([k, v], i) => fn(k, v, i)
+        )
+      )
+    if (Array.isArray(result)) {
+      result = result.map(item => {
+        return objectMap(item, (k, v) => {
+          return [k.replace('ID', 'Id').replace(/([A-Z])/g, '_$1').toLowerCase(), v]
+        })
+      })
+    } else if (typeof result === 'object') {
+      result = objectMap(result, (k, v) => {
+        return [k.replace('ID', 'Id').replace('URL', 'Url').replace(/([A-Z])/g, '_$1').toLowerCase(), v]
+      })
+    }
     return res.status(200).json(result)
   } catch (e) {
     const status = e.response ? e.response.status : 500
