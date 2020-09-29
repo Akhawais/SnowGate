@@ -23,10 +23,14 @@ const wrapRequest = async (eris, resource, method, res, ...args) => {
       result = await result.bind(erisResource)(...functionArguments)
     }
     const addOnProperties = {}
-    if (result.guild !== undefined) {
+    if (Array.isArray(result)) {
+      if (result[0].guild !== undefined) {
+        addOnProperties.guild_id = result[0].guild.id
+      }
+    } else if (result.guild !== undefined) {
       addOnProperties.guild_id = result.guild.id
     }
-    result = { ...JSON.parse(JSON.stringify(result)), ...addOnProperties }
+    result = JSON.parse(JSON.stringify(result))
     const objectMap = (obj, fn) =>
       Object.fromEntries(
         Object.entries(obj).map(
@@ -35,14 +39,16 @@ const wrapRequest = async (eris, resource, method, res, ...args) => {
       )
     if (Array.isArray(result)) {
       result = result.map(item => {
-        return objectMap(item, (k, v) => {
+        return { ...objectMap(item, (k, v) => {
           return [k.replace('ID', 'Id').replace('URL', 'Url').replace(/([A-Z])/g, '_$1').toLowerCase(), v]
-        })
+        }),
+        ...addOnProperties }
       })
     } else if (typeof result === 'object') {
-      result = objectMap(result, (k, v) => {
+      result = { ...objectMap(result, (k, v) => {
         return [k.replace('ID', 'Id').replace('URL', 'Url').replace(/([A-Z])/g, '_$1').toLowerCase(), v]
-      })
+      }),
+      ...addOnProperties }
     }
     return res.status(200).json(result)
   } catch (e) {
