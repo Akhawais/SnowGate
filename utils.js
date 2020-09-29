@@ -22,7 +22,11 @@ const wrapRequest = async (eris, resource, method, res, ...args) => {
       }
       result = await result.bind(erisResource)(...functionArguments)
     }
-    result = JSON.parse(JSON.stringify(result))
+    const addOnProperties = {}
+    if (result.guild !== undefined) {
+      addOnProperties.guild_id = result.guild.id
+    }
+    result = { ...JSON.parse(JSON.stringify(result)), ...addOnProperties }
     const objectMap = (obj, fn) =>
       Object.fromEntries(
         Object.entries(obj).map(
