@@ -52,7 +52,7 @@ const wrapRequest = async (eris, resource, method, res, ...args) => {
     }
     return res.status(200).json(result)
   } catch (e) {
-    const status = e.response ? e.response.status : 500
+    const status = e.res ? e.res.statusCode : 500
     const response = {
       status,
       error: e.toString(),
