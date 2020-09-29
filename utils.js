@@ -5,7 +5,7 @@ const wrapRequest = async (eris, resource, method, res, ...args) => {
     let result = erisResource
     if (method !== `get${resource.charAt(0).toUpperCase() + resource.slice(1)}`) {
       const functionArguments = args.slice(erisResourceFunction.length).map(i => {
-        if (typeof i === 'object') {
+        if (typeof i === 'object' && i.content === undefined) {
           return Object.keys(i).map(j => {
             if (!Number.isNaN(parseInt(i[j]))) {
               return parseInt(i[j])
