@@ -1,13 +1,13 @@
 const express = require('express')
 const app = express()
 const bodyParser = require('body-parser')
-const SnowTransfer = require('snowtransfer')
+const Eris = require('eris')
 const config = require('./config/config.json')
-const snowtransfer = new SnowTransfer(config.token, config.options)
+const eris = new Eris(config.token, { restMode: true, ...config.options })
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({ extended: true }))
 app.use((req, res, next) => {
-  req.rest = snowtransfer
+  req.rest = eris
   if (req.headers['X-Audit-Log-Reason']) {
     if (req.method === 'GET' || req.path.includes('/bans') || req.path.includes('/prune')) {
       req.query.reason = req.headers['X-Audit-Log-Reason']
