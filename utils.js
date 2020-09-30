@@ -1,26 +1,38 @@
 const wrapRequest = async (eris, resource, method, res, ...args) => {
   try {
-    const erisResourceFunction = eris[`getREST${resource.charAt(0).toUpperCase() + resource.slice(1)}`].bind(eris)
-    const erisResource = await erisResourceFunction(...args.slice(0, erisResourceFunction.length))
-    let result = erisResource
-    if (method !== `get${resource.charAt(0).toUpperCase() + resource.slice(1)}`) {
-      const functionArguments = args.slice(erisResourceFunction.length).map(i => {
-        if (typeof i === 'object' && i.content === undefined) {
-          return Object.keys(i).map(j => {
-            if (!Number.isNaN(parseInt(i[j]))) {
-              return parseInt(i[j])
-            }
-            return i[j]
-          })
-        }
-        return i
-      }).flat()
+    // Special cases
+    let result
+    if (resource === 'guild' && method === 'getGuildChannels') {
+      result = await eris.getRESTGuildChannels(args[0])
+    } else if (resource === 'guild' && method === 'getGuildRoles') {
+      result = await eris.getRESTGuildRoles(args[0])
+    } else if (resource === 'guild' && method === 'getGuildMembers') {
+      result = await eris.getRESTGuildMembers(args[0], args[1].limit, args[1].after)
+    } else if (resource === 'channel' && method === 'createMessage') {
+      result = await eris.createMessage(args[0], args[1])
+    } else {
+      const erisResourceFunction = eris[`getREST${resource.charAt(0).toUpperCase() + resource.slice(1)}`].bind(eris)
+      const erisResource = await erisResourceFunction(...args.slice(0, erisResourceFunction.length))
+      result = erisResource
+      if (method !== `get${resource.charAt(0).toUpperCase() + resource.slice(1)}`) {
+        const functionArguments = args.slice(erisResourceFunction.length).map(i => {
+          if (typeof i === 'object' && i.content === undefined) {
+            return Object.keys(i).map(j => {
+              if (!Number.isNaN(parseInt(i[j]))) {
+                return parseInt(i[j])
+              }
+              return i[j]
+            })
+          }
+          return i
+        }).flat()
 
-      result = erisResource[method.replace(resource.charAt(0).toUpperCase() + resource.slice(1), '').replace('get', 'getREST')]
-      if (result === undefined) {
-        result = erisResource[method.replace(resource.charAt(0).toUpperCase() + resource.slice(1), '')]
+        result = erisResource[method.replace(resource.charAt(0).toUpperCase() + resource.slice(1), '').replace('get', 'getREST')]
+        if (result === undefined) {
+          result = erisResource[method.replace(resource.charAt(0).toUpperCase() + resource.slice(1), '')]
+        }
+        result = await result.bind(erisResource)(...functionArguments)
       }
-      result = await result.bind(erisResource)(...functionArguments)
     }
     const addOnProperties = {}
     if (Array.isArray(result)) {
