@@ -2,7 +2,10 @@ const wrapRequest = async (eris, resource, method, res, ...args) => {
   try {
     // Special cases
     let result
-    if (resource === 'guild' && method === 'getGuildChannels') {
+    if (resource === 'guild' && method === 'getGuild') {
+      result = await eris.getRESTGuild(args[0])
+      result.roles = [ ...result.roles.values() ].map(i => i.toJSON())
+    } else if (resource === 'guild' && method === 'getGuildChannels') {
       result = await eris.getRESTGuildChannels(args[0])
     } else if (resource === 'guild' && method === 'getGuildRoles') {
       result = await eris.getRESTGuildRoles(args[0])
@@ -52,12 +55,22 @@ const wrapRequest = async (eris, resource, method, res, ...args) => {
     if (Array.isArray(result)) {
       result = result.map(item => {
         return { ...objectMap(item, (k, v) => {
+          if (k === 'permissions') {
+            if (v.deny === 0) {
+              v = v.allow
+            }
+          }
           return [k.replace('ID', 'Id').replace('URL', 'Url').replace(/([A-Z])/g, '_$1').toLowerCase(), v]
         }),
         ...addOnProperties }
       })
     } else if (typeof result === 'object') {
       result = { ...objectMap(result, (k, v) => {
+        if (k === 'permissions') {
+          if (v.deny === 0) {
+            v = v.allow
+          }
+        }
         return [k.replace('ID', 'Id').replace('URL', 'Url').replace(/([A-Z])/g, '_$1').toLowerCase(), v]
       }),
       ...addOnProperties }
